@@ -213,6 +213,7 @@ int vmspace_init(struct vmspace *vmspace)
 	init_list_head(&vmspace->vmr_list);
 	/* alloc the root page table page */
 	vmspace->pgtbl = get_pages(0);
+	kinfo("vmspace_init: pgtbl: %llx\n", virt_to_phys(vmspace->pgtbl));
 	BUG_ON(vmspace->pgtbl == NULL);
 	memset((void *)vmspace->pgtbl, 0, PAGE_SIZE);
 

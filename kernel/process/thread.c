@@ -188,13 +188,16 @@ static u64 load_binary(struct process *process,
 			//We can't directly copy to physical memory
 
 			flags = PFLAGS2VMRFLAGS(elf->p_headers[i].p_flags);
-
+			kinfo("load_binary: p_vaddr: %llx\n", p_vaddr);
+			kinfo("load_binary: physical addr: %llx\n", pmo->start);
+			kinfo("load_binary: possible vaddr: %llx\n", phys_to_virt(pmo->start));
+			kinfo("load_binary: vaddr of bin: %llx\n", bin+p_offset);
+			kinfo("load_binary: size: %llx\n", seg_sz);
+			memcpy((void *)phys_to_virt(pmo->start), bin+p_offset, seg_sz);
 			ret = vmspace_map_range(vmspace,
 						ROUND_DOWN(p_vaddr, PAGE_SIZE),
 						seg_map_sz, flags, pmo);
-
-			memcpy(p_vaddr, bin+p_offset, seg_sz);
-
+				
 			BUG_ON(ret != 0);
 		}
 	}
@@ -261,7 +264,9 @@ int thread_create_main(struct process *process, u64 stack_base,
 		ret = stack_pmo_cap;
 		goto out_free_obj_pmo;
 	}
-
+	kinfo("thread_create_main: stack(virt): %llx\n", stack_base);
+	kinfo("thread_create_main: stack_size: %llx\n", stack_size);
+	kinfo("thread_create_main: stack(phys): %llx\n", stack_pmo->start);
 	ret = vmspace_map_range(init_vmspace, stack_base, stack_size,
 				VMR_READ | VMR_WRITE, stack_pmo);
 	BUG_ON(ret != 0);

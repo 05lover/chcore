@@ -66,6 +66,9 @@ void main(void *addr)
 	BUG("No given TEST!");
 #endif
 
+	//debug 
+	break_point();
+
 	eret_to_thread(switch_context());
 
 	/* Should provide panic and use here */

@@ -13,6 +13,17 @@ u64 syscall(u64 sys_no, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4,
 	 * And finally use svc to execute the system call. After syscall returned, don't forget
 	 * to move return value from x0 to the ret variable of this function
 	 */
+	__asm__("mov x0,%0"::"r"(arg0));
+	__asm__("mov x1,%0"::"r"(arg1));
+	__asm__("mov x2,%0"::"r"(arg2));
+	__asm__("mov x3,%0"::"r"(arg3));
+	__asm__("mov x4,%0"::"r"(arg4));
+	__asm__("mov x5,%0"::"r"(arg5));
+	__asm__("mov x6,%0"::"r"(arg6));
+	__asm__("mov x7,%0"::"r"(arg7));
+	__asm__("mov x8,%0"::"r"(sys_no));
+	__asm__("svc #0");
+	__asm__("mov %0,x0":"=r"(ret):);
 	return ret;
 }
 
@@ -22,25 +33,27 @@ u64 syscall(u64 sys_no, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4,
  */
 void usys_putc(char ch)
 {
+	syscall(SYS_putc, ch, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 void usys_exit(int ret)
 {
+	syscall(SYS_exit, ret, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 int usys_create_pmo(u64 size, u64 type)
 {
-	return 0;
+	return (int)syscall(SYS_create_pmo, size, type, 0, 0, 0, 0, 0, 0, 0);
 }
 
 int usys_map_pmo(u64 process_cap, u64 pmo_cap, u64 addr, u64 rights)
 {
-	return 0;
+	return (int)syscall(SYS_map_pmo, process_cap, pmo_cap, addr, rights, 0, 0, 0, 0, 0);
 }
 
 u64 usys_handle_brk(u64 addr)
 {
-	return 0;
+	return (int)syscall(SYS_handle_brk, addr, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 /* Here finishes all syscalls need by lab3 */

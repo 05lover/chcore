@@ -332,6 +332,7 @@ void sys_exit(int ret)
 
 	kinfo("sys_exit with value %d\n", ret);
 	/* Set thread state */
+	
 	obj_free(target);
 
 	/* Set current running thread to NULL */

@@ -67,7 +67,7 @@ void main(void *addr)
 #endif
 
 	//debug 
-	break_point();
+	//break_point();
 
 	eret_to_thread(switch_context());
 

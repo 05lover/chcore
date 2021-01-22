@@ -13,6 +13,7 @@ u64 syscall(u64 sys_no, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4,
 	 * And finally use svc to execute the system call. After syscall returned, don't forget
 	 * to move return value from x0 to the ret variable of this function
 	 */
+	__asm__("mov x9,%0"::"r"(sys_no));
 	__asm__("mov x0,%0"::"r"(arg0));
 	__asm__("mov x1,%0"::"r"(arg1));
 	__asm__("mov x2,%0"::"r"(arg2));
@@ -21,7 +22,7 @@ u64 syscall(u64 sys_no, u64 arg0, u64 arg1, u64 arg2, u64 arg3, u64 arg4,
 	__asm__("mov x5,%0"::"r"(arg5));
 	__asm__("mov x6,%0"::"r"(arg6));
 	__asm__("mov x7,%0"::"r"(arg7));
-	__asm__("mov x8,%0"::"r"(sys_no));
+	__asm__("mov x8,x9");
 	__asm__("svc #0");
 	__asm__("mov %0,x0":"=r"(ret):);
 	return ret;

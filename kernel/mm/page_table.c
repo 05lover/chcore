@@ -147,7 +147,7 @@ static int get_next_ptp(ptp_t * cur_ptp, u32 level, vaddr_t va,
 /*
  * Translate a va to pa, and get its pte for the flags
  */
-/*
+/* lab2
  * query_in_pgtbl: translate virtual address to physical 
  * address and return the corresponding page table entry
  * 
@@ -161,9 +161,39 @@ static int get_next_ptp(ptp_t * cur_ptp, u32 level, vaddr_t va,
  */
 int query_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, paddr_t * pa, pte_t ** entry)
 {
-	// <lab2>
-
-	// </lab2>
+	ptp_t *next_ptp = (ptp_t *)pgtbl;
+	pte_t *pte_to_next;
+	for(u32 i=0; i<4; i++){
+		int res = get_next_ptp(next_ptp, i, va, &next_ptp, &pte_to_next, false);	
+		if(res == -ENOMAPPING){
+			pa = 0;
+			*entry = 0; 
+			return -ENOMAPPING;
+		} 
+		else if(res == BLOCK_PTP){
+			u64 off = 0;
+			switch(i){
+			case 1:
+				off = GET_VA_OFFSET_L1(va);
+				break;
+			case 2:
+				off = GET_VA_OFFSET_L2(va);
+				break;
+			default:
+				BUG_ON(1);
+			}
+			u64 pa_base = virt_to_phys(next_ptp);	
+			*pa = pa_base + off;
+			*entry = pte_to_next;
+			return 0;
+		}
+		else
+			continue;
+		
+	}
+	*entry = pte_to_next;
+	u64 pa_base = GET_PADDR_IN_PTE((*entry));	
+	*pa = pa_base + (va&PAGE_MASK);
 	return 0;
 }
 
@@ -186,7 +216,44 @@ int map_range_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, paddr_t pa,
 		       size_t len, vmr_prop_t flags)
 {
 	// <lab2>
+	len = (len + (PAGE_MASK)) & (~PAGE_MASK);  		
+	ptp_t *cur_ptp = NULL;
+	ptp_t *next_ptp = NULL;
+	pte_t *cur_pte = NULL;//pte in cur_ptp
+	for(u64 off=0; off<len; off=off+PAGE_SIZE){
+		cur_ptp = (ptp_t *)pgtbl;
+		for(int i=0; i<3; i++){
+			int res = get_next_ptp(cur_ptp, i, va+off, &next_ptp, &cur_pte, true);
+			cur_ptp = next_ptp;	
+			if(res == - ENOMAPPING){
+				BUG_ON(1);
+			}
+			else if(res == BLOCK_PTP)
+				return -1;
+			else 
+				continue;
+		}
+		int res = get_next_ptp(cur_ptp, 3, va+off, &next_ptp, &cur_pte, false);
+		if(res == -ENOMAPPING){
+			pte_t new_pte_val;
+			new_pte_val.pte = 0;
+			new_pte_val.l3_page.is_valid = 1;
+			new_pte_val.l3_page.is_page = 1;
+			new_pte_val.l3_page.pfn = (pa+off) >> PAGE_SHIFT;
 
+			cur_pte = &(cur_ptp->ent[GET_L3_INDEX((va+off))]);
+			//printk("cur_pte: %llx\n", cur_pte);
+			cur_pte->pte = new_pte_val.pte;
+			set_pte_flags(cur_pte, flags, USER_PTE);
+		}	
+		else{
+			/*alread mapped to some place*/
+			paddr_t other_pa = phys_to_virt(next_ptp);
+			if(other_pa != pa)
+				BUG_ON(1);
+		}
+	}
+	flush_tlb();
 	// </lab2>
 	return 0;
 }
@@ -207,7 +274,27 @@ int map_range_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, paddr_t pa,
 int unmap_range_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, size_t len)
 {
 	// <lab2>
+	len = (len + (PAGE_MASK)) & (~PAGE_MASK);  		
+	ptp_t *cur_ptp = NULL;
+	pte_t *pte_to_next = NULL;
+	for(u64 off=0; off<len; off=off+PAGE_SIZE){
+		cur_ptp = (ptp_t *)pgtbl;
+		for(int i=0; i<4; i++){
+			int res = get_next_ptp(cur_ptp, i, va+off, &cur_ptp, &pte_to_next, false);
+			if(res == - ENOMAPPING)
+				break;
+			else if(res == BLOCK_PTP){
+				pte_to_next->table.is_valid = 0;	
+				break;
+			}
+			else{
+				if(i == 3)
+					pte_to_next->table.is_valid = 0;
+			}
+		}
 
+	}
+	flush_tlb();
 	// </lab2>
 	return 0;
 }

@@ -3,6 +3,7 @@ cmake_minimum_required (VERSION 3.14)
 set(CMAKE_VERBOSE_MAKEFILE on)
 
 set(CMAKE_BUILD_TYPE "Release")  # "Release" or "Debug"
+#set(CMAKE_BUILD_TYPE "Debug")  # "Release" or "Debug"
 set(CHCORE_PLAT "raspi3")
 set(CHCORE_ARCH "aarch64")
 

@@ -170,6 +170,9 @@ struct vmregion *init_heap_vmr(struct vmspace *vmspace, vaddr_t va,
 	vmr->pmo = pmo;
 
 	ret = add_vmr_to_vmspace(vmspace, vmr);
+	
+	//author:zsm bug fix
+	vmspace->heap_vmr = vmr;
 
 	if (ret < 0)
 		goto out_free_vmr;
@@ -213,6 +216,7 @@ int vmspace_init(struct vmspace *vmspace)
 	init_list_head(&vmspace->vmr_list);
 	/* alloc the root page table page */
 	vmspace->pgtbl = get_pages(0);
+	kinfo("vmspace_init: pgtbl: %llx\n", virt_to_phys(vmspace->pgtbl));
 	BUG_ON(vmspace->pgtbl == NULL);
 	memset((void *)vmspace->pgtbl, 0, PAGE_SIZE);
 

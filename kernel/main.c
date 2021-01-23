@@ -124,6 +124,11 @@ void secondary_start(void)
 
 	/* Where the AP first returns to the user mode */
 	sched();
+=======
+	//debug 
+	//break_point();
+
+>>>>>>> lab3-sol
 	eret_to_thread(switch_context());
 
 	/* Should provide panic and use here */

@@ -17,6 +17,7 @@
 #include "buddy.h"
 #include "slab.h"
 
+
 extern unsigned long *img_end;
 
 #define PHYSICAL_MEM_START (24*1024*1024)	//24M
@@ -50,8 +51,18 @@ unsigned long get_ttbr1(void)
  */
 void map_kernel_space(vaddr_t va, paddr_t pa, size_t len)
 {
-	// <lab2>
+	u64 size_2m = 2UL*1024*1024;
+	u64 *pgd = (u64 *)phys_to_virt((paddr_t)get_ttbr1());
+	u64 *pte0 = pgd+(((va) >> (12 + 9 + 9 + 9)) & 0x1ff);	
+	u64 *pgd1 = (u64 *)phys_to_virt((*pte0) & 0xffffffff000UL);
+	u64 *pte1 = pgd1+(((va) >> (12 + 9 + 9)) & 0x1ff);	
+	u64 *pgd2 = (u64 *)phys_to_virt((*pte1) & 0xffffffff000UL);
 
+	for(u64 i=0; i<len; i = i+size_2m){
+		u64 *pte2 = pgd2+(((va+i) >> (12 + 9)) & 0x1ff);	
+		u64 new_pte = ((pa+i))|(0x1UL<<54)|(0x1UL<<10)|(0x3UL<<8)|(0x4UL<<2)|1;
+		*pte2 = new_pte;		
+	}
 	// </lab2>
 }
 
@@ -97,6 +108,6 @@ void mm_init(void)
 	init_slab();
 
 	map_kernel_space(KBASE + (128UL << 21), 128UL << 21, 128UL << 21);
-	//check whether kernel space [KABSE + 256 : KBASE + 512] is mapped 
+	//check whether kernel space [KABSE + 256M : KBASE + 512M] is mapped 
 	// kernel_space_check();
 }

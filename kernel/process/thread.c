@@ -175,6 +175,9 @@ static u64 load_binary(struct process *process,
 			 * page aligned segment size. Take care of the page alignment when allocating
 			 * and mapping physical memory.
 			 */
+			p_vaddr = elf->p_headers[i].p_vaddr;
+			seg_sz = elf->p_headers[i].p_filesz;
+			seg_map_sz = ROUND_UP(seg_sz, PAGE_SIZE);
 
 			pmo = obj_alloc(TYPE_PMO, sizeof(*pmo));
 			if (!pmo) {
@@ -193,13 +196,22 @@ static u64 load_binary(struct process *process,
 			 * You should copy data from the elf into the physical memory in pmo.
 			 * The physical address of a pmo can be get from pmo->start.
 			 */
+			u64 p_offset = elf->p_headers[i].p_offset;
+			//src: bin+p_offset, size: seg_sz, dst:?
+			//pmo->start is the physical address
+			//We can't directly copy to physical memory
 
 			flags = PFLAGS2VMRFLAGS(elf->p_headers[i].p_flags);
-
+			kinfo("load_binary: p_vaddr: %llx\n", p_vaddr);
+			kinfo("load_binary: physical addr: %llx\n", pmo->start);
+			kinfo("load_binary: possible vaddr: %llx\n", phys_to_virt(pmo->start));
+			kinfo("load_binary: vaddr of bin: %llx\n", bin+p_offset);
+			kinfo("load_binary: size: %llx\n", seg_sz);
+			memcpy((void *)phys_to_virt(pmo->start), bin+p_offset, seg_sz);
 			ret = vmspace_map_range(vmspace,
 						ROUND_DOWN(p_vaddr, PAGE_SIZE),
 						seg_map_sz, flags, pmo);
-
+				
 			BUG_ON(ret != 0);
 		}
 	}
@@ -266,7 +278,9 @@ int thread_create_main(struct process *process, u64 stack_base,
 		ret = stack_pmo_cap;
 		goto out_free_obj_pmo;
 	}
-
+	kinfo("thread_create_main: stack(virt): %llx\n", stack_base);
+	kinfo("thread_create_main: stack_size: %llx\n", stack_size);
+	kinfo("thread_create_main: stack(phys): %llx\n", stack_pmo->start);
 	ret = vmspace_map_range(init_vmspace, stack_base, stack_size,
 				VMR_READ | VMR_WRITE, stack_pmo);
 	BUG_ON(ret != 0);
@@ -333,7 +347,7 @@ void sys_exit(int ret)
 	// kinfo("sys_exit with value %d\n", ret);
 	/* Set thread state */
 	target->thread_ctx->state = TS_EXIT;
-	obj_free(target);
+	
 
 	/* Set current running thread to NULL */
 	current_threads[cpuid] = NULL;

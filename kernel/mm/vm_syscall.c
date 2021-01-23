@@ -376,6 +376,8 @@ u64 sys_handle_brk(u64 addr)
 	 * return origin heap addr on failure;
 	 * return new heap addr on success.
 	 */
+	//Don't understant this line
+	//Why obj_put the vmspace
 	obj_put(vmspace);
 	return retval;
 }

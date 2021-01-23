@@ -170,6 +170,9 @@ struct vmregion *init_heap_vmr(struct vmspace *vmspace, vaddr_t va,
 	vmr->pmo = pmo;
 
 	ret = add_vmr_to_vmspace(vmspace, vmr);
+	
+	//author:zsm bug fix
+	vmspace->heap_vmr = vmr;
 
 	if (ret < 0)
 		goto out_free_vmr;

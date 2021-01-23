@@ -241,7 +241,7 @@ int map_range_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, paddr_t pa,
 			new_pte_val.l3_page.is_page = 1;
 			new_pte_val.l3_page.pfn = (pa+off) >> PAGE_SHIFT;
 
-			cur_pte = &(cur_ptp->ent[GET_L3_INDEX(va+off)]);
+			cur_pte = &(cur_ptp->ent[GET_L3_INDEX((va+off))]);
 			//printk("cur_pte: %llx\n", cur_pte);
 			cur_pte->pte = new_pte_val.pte;
 			set_pte_flags(cur_pte, flags, USER_PTE);

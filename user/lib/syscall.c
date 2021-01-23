@@ -54,7 +54,7 @@ int usys_map_pmo(u64 process_cap, u64 pmo_cap, u64 addr, u64 rights)
 
 u64 usys_handle_brk(u64 addr)
 {
-	return (int)syscall(SYS_handle_brk, addr, 0, 0, 0, 0, 0, 0, 0, 0);
+	return syscall(SYS_handle_brk, addr, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 
 /* Here finishes all syscalls need by lab3 */

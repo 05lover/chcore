@@ -54,7 +54,7 @@ void handle_entry_c(int type, u64 esr, u64 address)
 	 * Lab4
 	 * Acquire the big kernel lock, if the exception is not from kernel
 	 */
-
+	if(type >= 8) lock_kernel();
 	/* ec: exception class */
 	u32 esr_ec = GET_ESR_EL1_EC(esr);
 

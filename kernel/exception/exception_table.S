@@ -91,6 +91,7 @@
  * 	unlock the big kernel lock before returning to the user mode
  */
 .macro	exception_return
+	bl unlock_kernel
 	exception_exit
 .endm
 
@@ -139,7 +140,7 @@ irq_el1t:
 	.align 7
 
 fiq_el1t:
-	handle_entry	1, FIQ_EL1t
+	//handle_entry	1, FIQ_EL1t
 	.align 7
 
 error_el1t:
@@ -151,8 +152,12 @@ sync_el1h:
 	.align 7
 
 irq_el1h:
-	//handle_entry	0, IRQ_EL1h
-	.align 7
+	exception_enter
+	mov	x0, IRQ_EL1h
+	bl	handle_irq
+	/* should nerver reach here */
+	b .
+	.align 8
 
 fiq_el1h:
 	handle_entry	1, FIQ_EL1h
@@ -212,13 +217,7 @@ el0_syscall:
 	str	x0, [sp] /* set the return value of the syscall */
 	exception_return
 	
-<<<<<<< HEAD
-irq_el1h:
-	exception_enter
-	mov	x0, IRQ_EL1h
-	bl	handle_irq
-	/* should nerver reach here */
-	b .
+
 
 irq_el0_64:
 	exception_enter
@@ -226,12 +225,7 @@ irq_el0_64:
 	bl	handle_irq
 	/* should nerver reach here */
 	b .
-=======
 
-irq_el0_64:
-	handle_entry	0,  IRQ_EL0_64
-	.align 7
->>>>>>> lab3-sol
 
 fiq_el0_64:
 	handle_entry	0, FIQ_EL0_64

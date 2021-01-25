@@ -9,6 +9,7 @@ void _start_c(long *p)
 	char **envp = (void *)(p + 3);
 
 	int ret = main(argc, argv, envp);
+	//usys_exit(ret);
 	/*
 	 * Lab3: Your code here
 	 * Complete the main function

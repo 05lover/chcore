@@ -24,7 +24,7 @@
 #include <exception/irq.h>
 #include <sched/context.h>
 
-/* in arch/sched/idle.S */
+/* in kernel/sched/idle.S */
 void idle_thread_routine(void);
 
 /*
@@ -51,7 +51,25 @@ struct thread idle_threads[PLAT_CPU_NUM];
  */
 int rr_sched_enqueue(struct thread *thread)
 {
-	return -1;
+	if(thread == NULL || thread->thread_ctx == NULL
+			  || thread->thread_ctx->state == TS_READY)
+		return -1;
+	if(thread->thread_ctx->type == TYPE_IDLE)
+		return 0;
+	s32 aff = thread->thread_ctx->affinity;
+	if(aff >= PLAT_CPU_NUM)
+		return -1;
+	else if(aff == NO_AFF){
+		u32 cpu_id = smp_get_cpu_id();
+		thread->thread_ctx->cpuid = cpu_id;
+		list_append(&(thread->ready_queue_node), &rr_ready_queue[cpu_id]);
+	}
+	else{
+		thread->thread_ctx->cpuid = aff;
+		list_append(&(thread->ready_queue_node), &rr_ready_queue[aff]);
+	}
+	thread->thread_ctx->state = TS_READY;
+	return 0;
 }
 
 /*
@@ -61,8 +79,13 @@ int rr_sched_enqueue(struct thread *thread)
  * Do not forget to add some basic parameter checking
  */
 int rr_sched_dequeue(struct thread *thread)
-{
-	return -1;
+{	
+	if(!thread || thread->thread_ctx->state != TS_READY 
+		   || thread->thread_ctx->type == TYPE_IDLE)
+		return -1;
+	thread->thread_ctx->state = TS_INTER;
+	list_del(&(thread->ready_queue_node));
+	return 0;
 }
 
 /*
@@ -78,11 +101,27 @@ int rr_sched_dequeue(struct thread *thread)
  */
 struct thread *rr_sched_choose_thread(void)
 {
-	return NULL;
+	u32 cpu_id = smp_get_cpu_id();
+	struct list_head *ls = &rr_ready_queue[cpu_id];
+	struct list_head *ls_iter = ls;
+       	if(list_empty(ls)){
+		return &idle_threads[cpu_id]; 
+	}	
+	else{
+		do{
+			ls_iter = ls_iter->next;
+			struct thread *th = list_entry(ls_iter, struct thread, ready_queue_node);
+			//if(th->thread_ctx->state)
+			rr_sched_dequeue(th);
+			return th;
+		}while(ls_iter != ls);
+	}
 }
 
 static inline void rr_sched_refill_budget(struct thread *target, u32 budget)
 {
+	if(target && target->thread_ctx && target->thread_ctx->type != TYPE_IDLE)
+		target->thread_ctx->sc->budget = budget;
 }
 
 /*
@@ -99,7 +138,18 @@ static inline void rr_sched_refill_budget(struct thread *target, u32 budget)
  */
 int rr_sched(void)
 {
-	return -1;
+	if(current_thread && current_thread->thread_ctx->type != TYPE_IDLE)
+	{
+		if(current_thread->thread_ctx && current_thread->thread_ctx->sc->budget != 0)
+			return -1;
+		current_thread->thread_ctx->state = TS_INTER;
+		rr_sched_enqueue(current_thread);	
+	}
+	struct thread *th = rr_sched_choose_thread();
+	th->thread_ctx->state = TS_RUNNING;
+	switch_to_thread(th);
+	eret_to_thread(switch_context());
+	return 0;
 }
 
 /*
@@ -140,6 +190,10 @@ int rr_sched_init(void)
  */
 void rr_sched_handle_timer_irq(void)
 {
+	if(current_thread && current_thread->thread_ctx->type != TYPE_IDLE){
+		current_thread->thread_ctx->sc->budget --;
+	}
+	rr_sched();
 }
 
 struct sched_ops rr = {

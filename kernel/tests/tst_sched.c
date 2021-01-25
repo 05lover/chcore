@@ -266,6 +266,7 @@ void tst_sched_queue(bool is_bsp)
 
 void tst_sched_cooperative(bool is_bsp)
 {
+	printk("tst_sched_cooperative start\n");
 	tst_sched_param(is_bsp);
 	tst_sched_queue(is_bsp);
 

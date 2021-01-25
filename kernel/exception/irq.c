@@ -41,7 +41,7 @@ void handle_irq(int type)
 	 * 	The thread being interrupted is an idle thread.
 	 */
 	//TODO: add some thread status check
-	if(type >= 8)
+	if(type >= 8 || (current_thread && current_thread->thread_ctx->type == TYPE_IDLE))
 		lock_kernel();
 
 	plat_handle_irq();
@@ -50,6 +50,9 @@ void handle_irq(int type)
 	 * Lab4
 	 * Do you miss something?
 	 */
+	if(current_thread && current_thread->thread_ctx->type == TYPE_IDLE)
+		unlock_kernel();
+
 }
 
 void plat_handle_irq(void)

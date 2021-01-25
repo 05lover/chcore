@@ -131,20 +131,35 @@
  */
 .align	11
 EXPORT(el1_vector)
-
+exception_entry sync_el1t
+exception_entry irq_el1t
+exception_entry fiq_el1t
+exception_entry error_el1t
+exception_entry sync_el1h
+exception_entry irq_el1h
+exception_entry fiq_el1h
+exception_entry error_el1h
+exception_entry sync_el0_64
+exception_entry irq_el0_64
+exception_entry fiq_el0_64
+exception_entry error_el0_64
+exception_entry sync_el0_32
+exception_entry irq_el0_32
+exception_entry fiq_el0_32
+exception_entry error_el0_32
 sync_el1t:
 	handle_entry	1, SYNC_EL1t
 	.align 7
 irq_el1t:
-	//handle_entry 	1, IRQ_EL1t
+	handle_entry 	1, IRQ_EL1t
 	.align 7
 
 fiq_el1t:
-	//handle_entry	1, FIQ_EL1t
+	handle_entry	1, FIQ_EL1t
 	.align 7
 
 error_el1t:
-	//handle_entry	1, ERROR_EL1t
+	handle_entry	1, ERROR_EL1t
 	.align 7
 
 sync_el1h:
@@ -164,7 +179,7 @@ fiq_el1h:
 	.align 7
 
 error_el1h:
-	//handle_entry	1, ERROR_EL1h
+	handle_entry	1, ERROR_EL1h
 	.align 7
 
 sync_el0_64:
@@ -217,8 +232,6 @@ el0_syscall:
 	str	x0, [sp] /* set the return value of the syscall */
 	exception_return
 	
-
-
 irq_el0_64:
 	exception_enter
 	mov	x0, IRQ_EL0_64

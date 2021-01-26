@@ -266,7 +266,6 @@ void tst_sched_queue(bool is_bsp)
 
 void tst_sched_cooperative(bool is_bsp)
 {
-	printk("tst_sched_cooperative start\n");
 	tst_sched_param(is_bsp);
 	tst_sched_queue(is_bsp);
 
@@ -352,6 +351,8 @@ void tst_sched_timer(bool is_bsp)
 	}
 
 	BUG_ON(DEFAULT_BUDGET <= 1);
+	//debug
+	//kinfo("thread[1]->budget:%d",threads[1]->thread_ctx->sc->budget);
 	sched_handle_timer_irq();
 	sched();
 	BUG_ON(current_thread != threads[1]);

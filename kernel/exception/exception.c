@@ -58,9 +58,9 @@ void handle_entry_c(int type, u64 esr, u64 address)
 	/* ec: exception class */
 	u32 esr_ec = GET_ESR_EL1_EC(esr);
 
-	kdebug
-	    ("Interrupt type: %d, ESR: 0x%lx, Fault address: 0x%lx, EC 0b%b\n",
-	     type, esr, address, esr_ec);
+	kinfo
+	    ("cpuid:%d Interrupt type: %d, ESR: 0x%lx, Fault address: 0x%lx, EC 0b%b\n",
+	     smp_get_cpu_id(),type, esr, address, esr_ec);
 	/* Dispatch exception according to EC */
 	switch (esr_ec) {
 		/*

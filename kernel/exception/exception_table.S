@@ -147,24 +147,20 @@ exception_entry sync_el0_32
 exception_entry irq_el0_32
 exception_entry fiq_el0_32
 exception_entry error_el0_32
+
 sync_el1t:
 	handle_entry	1, SYNC_EL1t
-	.align 7
 irq_el1t:
 	handle_entry 	1, IRQ_EL1t
-	.align 7
 
 fiq_el1t:
 	handle_entry	1, FIQ_EL1t
-	.align 7
 
 error_el1t:
 	handle_entry	1, ERROR_EL1t
-	.align 7
 
 sync_el1h:
 	handle_entry	1, SYNC_EL1h
-	.align 7
 
 irq_el1h:
 	exception_enter
@@ -172,15 +168,12 @@ irq_el1h:
 	bl	handle_irq
 	/* should nerver reach here */
 	b .
-	.align 8
 
 fiq_el1h:
 	handle_entry	1, FIQ_EL1h
-	.align 7
 
 error_el1h:
 	handle_entry	1, ERROR_EL1h
-	.align 7
 
 sync_el0_64:
 	/* Since we cannot touch x0-x7, we need some extra work here */
@@ -242,27 +235,21 @@ irq_el0_64:
 
 fiq_el0_64:
 	handle_entry	0, FIQ_EL0_64
-	.align 7
 
 error_el0_64:
 	handle_entry	0, ERROR_EL0_64
-	.align 7
 
 sync_el0_32:
 	handle_entry	0, SYNC_EL0_32
-	.align 7
 
 irq_el0_32:
 	handle_entry	0, IRQ_EL0_32
-	.align 7
 
 fiq_el0_32:
 	handle_entry	0, FIQ_EL0_32
-	.align 7
 
 error_el0_32:
 	handle_entry	0, ERROR_EL0_32
-	.align 7
 
 /* void eret_to_thread(u64 sp) */
 BEGIN_FUNC(eret_to_thread)

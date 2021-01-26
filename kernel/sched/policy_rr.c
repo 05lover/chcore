@@ -140,15 +140,18 @@ int rr_sched(void)
 {
 	if(current_thread && current_thread->thread_ctx->type != TYPE_IDLE)
 	{
-		if(current_thread->thread_ctx && current_thread->thread_ctx->sc->budget != 0)
+		if(current_thread->thread_ctx && current_thread->thread_ctx->sc->budget > 0)
+		{
 			return -1;
+		}
 		current_thread->thread_ctx->state = TS_INTER;
+		rr_sched_refill_budget(current_thread, DEFAULT_BUDGET);
 		rr_sched_enqueue(current_thread);	
 	}
 	struct thread *th = rr_sched_choose_thread();
+	rr_sched_refill_budget(th, DEFAULT_BUDGET);
 	th->thread_ctx->state = TS_RUNNING;
 	switch_to_thread(th);
-	eret_to_thread(switch_context());
 	return 0;
 }
 
@@ -191,9 +194,11 @@ int rr_sched_init(void)
 void rr_sched_handle_timer_irq(void)
 {
 	if(current_thread && current_thread->thread_ctx->type != TYPE_IDLE){
-		current_thread->thread_ctx->sc->budget --;
+		if(current_thread->thread_ctx->sc->budget > 0)
+			current_thread->thread_ctx->sc->budget --;
 	}
-	rr_sched();
+	//rr_sched();
+	//eret_to_thread(switch_context());
 }
 
 struct sched_ops rr = {

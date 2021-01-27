@@ -213,6 +213,10 @@ static u64 load_binary(struct process *process,
 			// What if p_vaddr isn't page size aligned?
 			// There is an offset p_vaddr-ROUND_DOWN(p_vaddr, PAGE_SIZE)
 			memcpy((void *)phys_to_virt(pmo->start)+offset, bin+p_offset, seg_sz);
+			//just use the physical address is ok
+			//why? 0xffffff is 24bit [63:48] isn't used, but [47:39] is used as L1 index
+			//maybe init_mm did the work?
+			//memcpy((void *)pmo->start+offset, bin+p_offset, seg_sz);
 			ret = vmspace_map_range(vmspace,
 						ROUND_DOWN(p_vaddr, PAGE_SIZE),
 						seg_map_sz, flags, pmo);

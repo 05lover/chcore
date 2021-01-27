@@ -176,7 +176,10 @@ static u64 load_binary(struct process *process,
 			 * and mapping physical memory.
 			 */
 			p_vaddr = elf->p_headers[i].p_vaddr;
-			seg_sz = elf->p_headers[i].p_filesz;
+			//fix this
+			//seg_sz = elf->p_headers[i].p_filesz;
+			//sometimes memsize > filesize
+			seg_sz = elf->p_headers[i].p_memsz;
 			u64 offset = p_vaddr - ROUND_DOWN(p_vaddr, PAGE_SIZE);
 			seg_map_sz = ROUND_UP((seg_sz+offset), PAGE_SIZE) ;
 
@@ -208,15 +211,10 @@ static u64 load_binary(struct process *process,
 			kinfo("load_binary: possible vaddr: %llx\n", phys_to_virt(pmo->start));
 			kinfo("load_binary: vaddr of bin: %llx\n", bin+p_offset);
 			kinfo("load_binary: size: %llx\n", seg_sz);
-			kinfo("load_binary: size: %llx\n", seg_sz);
 			// There is a serious problem:
 			// What if p_vaddr isn't page size aligned?
 			// There is an offset p_vaddr-ROUND_DOWN(p_vaddr, PAGE_SIZE)
 			memcpy((void *)phys_to_virt(pmo->start)+offset, bin+p_offset, seg_sz);
-			//just use the physical address is ok
-			//why? 0xffffff is 24bit [63:48] isn't used, but [47:39] is used as L1 index
-			//maybe init_mm did the work?
-			//memcpy((void *)pmo->start+offset, bin+p_offset, seg_sz);
 			ret = vmspace_map_range(vmspace,
 						ROUND_DOWN(p_vaddr, PAGE_SIZE),
 						seg_map_sz, flags, pmo);

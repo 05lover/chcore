@@ -13,4 +13,4 @@ define add-symbol-file-auto
 end
 
 add-symbol-file-auto ./build/kernel.img
-add-symbol-file-auto ./user/build/ramdisk/yield_single.bin
+add-symbol-file-auto ./user/build/ramdisk/spawn_basic.bin

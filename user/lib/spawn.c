@@ -335,7 +335,7 @@ int launch_process_with_pmos_caps(struct user_elf *user_elf,
 		 * that address.
 		 */
 		stack_top = MAIN_THREAD_STACK_BASE + MAIN_THREAD_STACK_SIZE;
-		stack_offset = MAIN_THREAD_STACK_SIZE - ENV_SIZE_ON_STACK;
+		stack_offset = MAIN_THREAD_STACK_SIZE - PAGE_SIZE;
 
 		/* Construct the parameters on the top page of the stack */
 		construct_init_env(init_env, stack_top, &user_elf->elf_meta,
@@ -384,7 +384,7 @@ int launch_process_with_pmos_caps(struct user_elf *user_elf,
 		 * create main thread in the new process.
 		 * Please fill the stack_va!
 		 */
-		stack_va = stack_top - ENV_SIZE_ON_STACK;
+		stack_va = stack_top - PAGE_SIZE;
 		main_thread_cap =
 		    usys_create_thread(new_process_cap, stack_va, pc,
 				       (u64) NULL, MAIN_THREAD_PRIO, aff);

@@ -66,9 +66,9 @@ void do_page_fault(u64 esr, u64 fault_ins_addr)
 int handle_trans_fault(struct vmspace *vmspace, vaddr_t fault_addr)
 {
 	struct vmregion *vmr;
-	struct pmobject *pmo;
+	/*struct pmobject *pmo;
 	paddr_t pa;
-	u64 offset;
+	u64 offset;*/
 
 	/*
 	 * Lab3: your code here

@@ -318,10 +318,10 @@ u64 sys_handle_brk(u64 addr)
 {
 	struct vmspace *vmspace;
 	struct pmobject *pmo;
-	struct vmregion *vmr;
-	size_t len;
+	//struct vmregion *vmr;
+	//size_t len;
 	u64 retval;
-	int ret;
+	//int ret;
 
 	vmspace = obj_get(current_process, VMSPACE_OBJ_ID, TYPE_VMSPACE);
 
@@ -354,6 +354,8 @@ u64 sys_handle_brk(u64 addr)
 		}
 		pmo_init(pmo, PMO_ANONYM, 0, 0);
 		int pmo_cap = cap_alloc(current_process, pmo, 0);	
+		if(pmo_cap < 0)
+			return -ENOMEM;
 		
 		init_heap_vmr(vmspace, vmspace->user_current_heap, pmo);
 		retval = vmspace->user_current_heap;

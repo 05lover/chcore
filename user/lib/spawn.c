@@ -397,6 +397,9 @@ int launch_process_with_pmos_caps(struct user_elf *user_elf,
 
 	{
 		/* Step C: Output the child process & thread capabilities */
+		*child_process_cap = new_process_cap;
+		*child_main_thread_cap = main_thread_cap;
+		//printf("child process cap: %d\n child thread cap: %d\n", new_process_cap, main_thread_cap);
 	}
 
 	return 0;

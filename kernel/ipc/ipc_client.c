@@ -190,7 +190,7 @@ u32 sys_register_client(u32 server_cap, u64 vm_config_ptr)
 		r = -EINVAL;
 		goto out_fail;
 	}
-
+	
 	server = obj_get(current_thread->process, server_cap, TYPE_THREAD);
 	if (!server) {
 		r = -ECAPBILITY;

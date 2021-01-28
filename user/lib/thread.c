@@ -3,7 +3,7 @@
 #include <lib/print.h>
 #include <lib/type.h>
 
-int thread_num_in_process = 0;
+int thread_num_in_process = 3;
 
 int create_thread(void *(*func) (void *), u64 arg, u32 prio, s32 cpuid)
 {

@@ -91,6 +91,7 @@
  * 	unlock the big kernel lock before returning to the user mode
  */
 .macro	exception_return
+	bl unlock_kernel
 	exception_exit
 .endm
 
@@ -130,10 +131,25 @@
  */
 .align	11
 EXPORT(el1_vector)
+exception_entry sync_el1t
+exception_entry irq_el1t
+exception_entry fiq_el1t
+exception_entry error_el1t
+exception_entry sync_el1h
+exception_entry irq_el1h
+exception_entry fiq_el1h
+exception_entry error_el1h
+exception_entry sync_el0_64
+exception_entry irq_el0_64
+exception_entry fiq_el0_64
+exception_entry error_el0_64
+exception_entry sync_el0_32
+exception_entry irq_el0_32
+exception_entry fiq_el0_32
+exception_entry error_el0_32
 
 sync_el1t:
 	handle_entry	1, SYNC_EL1t
-
 irq_el1t:
 	handle_entry 	1, IRQ_EL1t
 
@@ -145,6 +161,13 @@ error_el1t:
 
 sync_el1h:
 	handle_entry	1, SYNC_EL1h
+
+irq_el1h:
+	exception_enter
+	mov	x0, IRQ_EL1h
+	bl	handle_irq
+	/* should nerver reach here */
+	b .
 
 fiq_el1h:
 	handle_entry	1, FIQ_EL1h
@@ -202,19 +225,13 @@ el0_syscall:
 	str	x0, [sp] /* set the return value of the syscall */
 	exception_return
 	
-irq_el1h:
-	exception_enter
-	mov	x0, IRQ_EL1h
-	bl	handle_irq
-	/* should nerver reach here */
-	b .
-
 irq_el0_64:
 	exception_enter
 	mov	x0, IRQ_EL0_64
 	bl	handle_irq
 	/* should nerver reach here */
 	b .
+
 
 fiq_el0_64:
 	handle_entry	0, FIQ_EL0_64

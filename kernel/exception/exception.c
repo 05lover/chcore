@@ -32,13 +32,14 @@ void exception_init_per_cpu(void)
 	 * Uncomment the timer_init() when you are handling preemptive
 	 * shceduling
 	 */
-	// timer_init();
+	timer_init();
 
 	/**
 	 * Lab3: Your code here
 	 * Setup the exception vector with the asm function written in exception.S
 	 */
 	disable_irq();
+	set_exception_vector();
 }
 
 void exception_init(void)
@@ -53,13 +54,13 @@ void handle_entry_c(int type, u64 esr, u64 address)
 	 * Lab4
 	 * Acquire the big kernel lock, if the exception is not from kernel
 	 */
-
+	if(type >= 8) lock_kernel();
 	/* ec: exception class */
 	u32 esr_ec = GET_ESR_EL1_EC(esr);
 
 	kdebug
-	    ("Interrupt type: %d, ESR: 0x%lx, Fault address: 0x%lx, EC 0b%b\n",
-	     type, esr, address, esr_ec);
+	    ("cpuid:%d Interrupt type: %d, ESR: 0x%lx, Fault address: 0x%lx, EC 0b%b\n",
+	     smp_get_cpu_id(),type, esr, address, esr_ec);
 	/* Dispatch exception according to EC */
 	switch (esr_ec) {
 		/*
@@ -67,8 +68,20 @@ void handle_entry_c(int type, u64 esr, u64 address)
 		 * Handle exceptions as required in the lab document. Checking exception codes in
 		 * esr.h may help.
 		 */
+	case ESR_EL1_EC_UNKNOWN:
+		kinfo("%s",UNKNOWN);
+		sys_exit(-12);
+		break;
+	case ESR_EL1_EC_IABT_LEL:
+		sys_exit(0);
+		break;
+	case ESR_EL1_EC_DABT_LEL:
+	case ESR_EL1_EC_DABT_CEL:
+		do_page_fault(esr, address);
+		break;
 	default:
 		kdebug("Unsupported Exception ESR %lx\n", esr);
+		sys_exit(0);
 		break;
 	}
 }

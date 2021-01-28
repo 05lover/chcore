@@ -7,6 +7,7 @@
  * Supported Order: [0, BUDDY_MAX_ORDER).
  * The max allocated size (continous physical memory size) is
  * 2^(BUDDY_MAX_ORDER - 1) * 4K, i.e., 16M.
+ * question: 2^13 * 4K = 32M ?
  */
 #define BUDDY_PAGE_SIZE     (0x1000)
 #define BUDDY_MAX_ORDER     (14UL)

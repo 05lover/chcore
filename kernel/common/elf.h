@@ -45,8 +45,8 @@
  */
 struct elf_indent {
 	u8 ei_magic[4];
-	u8 ei_class;
-	u8 ei_data;
+	u8 ei_class;// 1 or 2 for 32- or 64-bit format
+	u8 ei_data; // 1 or 2 for little or big edianness
 	u8 ei_version;
 	u8 ei_osabi;
 	u8 ei_abiversion;

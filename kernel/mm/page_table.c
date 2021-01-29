@@ -229,9 +229,10 @@ int map_range_in_pgtbl(vaddr_t * pgtbl, vaddr_t va, paddr_t pa,
 				BUG_ON(1);
 			}
 			else if(res == BLOCK_PTP)
-				return -1;
+				BUG_ON(1);
 			else 
 				continue;
+
 		}
 		int res = get_next_ptp(cur_ptp, 3, va+off, &next_ptp, &cur_pte, false);
 		if(res == -ENOMAPPING){

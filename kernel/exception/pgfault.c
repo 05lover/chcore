@@ -52,12 +52,14 @@ void do_page_fault(u64 esr, u64 fault_ins_addr)
 					       fault_addr);
 			if (ret != 0) {
 				kinfo("pgfault at 0x%p failed\n", fault_addr);
+				kinfo("pgfault at instruction: 0x%p failed\n", fault_ins_addr);
 				sys_exit(ret);
 			}
 			break;
 		}
 	default:
-		kinfo("do_page_fault: fsc is unsupported (0x%b) now\n", fsc);
+		kinfo("do_page_fault: fsc is unsupported (%d) now\n", fsc);
+		//kinfo("pgfault at 0x%p failed\n", fault_addr);
 		BUG_ON(1);
 		break;
 	}
@@ -94,8 +96,9 @@ int handle_trans_fault(struct vmspace *vmspace, vaddr_t fault_addr)
 		return -ENOMAPPING;	
 	vmr->pmo->type = PMO_DATA;
 
-	vmr->pmo->size = PAGE_SIZE;
-	vmr->pmo->start =  (paddr_t) virt_to_phys(kmalloc(PAGE_SIZE));
-	map_range_in_pgtbl(vmspace->pgtbl, ROUND_DOWN(fault_addr,PAGE_SIZE), vmr->pmo->start, PAGE_SIZE, vmr->perm);
+	vmr->pmo->start =  (paddr_t) virt_to_phys(kmalloc(vmr->pmo->size));
+	//kinfo("handle_trans_fault: vmr->start:%p \n", vmr->start);
+	//kinfo("handle_trans_fault: vmr->pmo->size:%llu \n", vmr->pmo->size);
+	map_range_in_pgtbl(vmspace->pgtbl, vmr->start, vmr->pmo->start, vmr->pmo->size, vmr->perm);
 	return 0;
 }

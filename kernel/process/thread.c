@@ -145,6 +145,7 @@ static u64 load_binary(struct process *process,
 	vmr_prop_t flags;
 	int i, r;
 	size_t seg_sz, seg_map_sz;
+	size_t file_sz;
 	u64 p_vaddr;
 
 	int *pmo_cap;
@@ -180,6 +181,7 @@ static u64 load_binary(struct process *process,
 			//seg_sz = elf->p_headers[i].p_filesz;
 			//sometimes memsize > filesize
 			seg_sz = elf->p_headers[i].p_memsz;
+			file_sz = elf->p_headers[i].p_filesz;
 			u64 offset = p_vaddr - ROUND_DOWN(p_vaddr, PAGE_SIZE);
 			seg_map_sz = ROUND_UP((seg_sz+offset), PAGE_SIZE) ;
 
@@ -214,7 +216,11 @@ static u64 load_binary(struct process *process,
 			// There is a serious problem:
 			// What if p_vaddr isn't page size aligned?
 			// There is an offset p_vaddr-ROUND_DOWN(p_vaddr, PAGE_SIZE)
-			memcpy((void *)phys_to_virt(pmo->start)+offset, bin+p_offset, seg_sz);
+
+			// corner case: file size<mem size
+			// static variables which are not initialized or initialized to 0.
+			//memcpy((void *)phys_to_virt(pmo->start)+offset, bin+p_offset, seg_sz);
+			memcpy((void *)phys_to_virt(pmo->start)+offset, bin+p_offset, file_sz);
 			ret = vmspace_map_range(vmspace,
 						ROUND_DOWN(p_vaddr, PAGE_SIZE),
 						seg_map_sz, flags, pmo);

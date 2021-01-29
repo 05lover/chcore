@@ -55,6 +55,7 @@ void *kmalloc(size_t size)
 	else
 		order = size_to_page_order(size);
 
+	
 	p_page = buddy_get_pages(&global_mem, order);
 	return page_to_virt(&global_mem, p_page);
 }

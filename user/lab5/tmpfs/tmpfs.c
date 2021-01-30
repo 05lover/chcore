@@ -126,8 +126,8 @@ static int tfs_mknod(struct inode *dir, const char *name, size_t len, int mkdir)
 	BUG_ON(!name);
 
 	if (len == 0) {
-		WARN("mknod with len of 0");
-		return -ENOENT;
+	//	WARN("mknod with len of 0");
+	//	return -ENOENT;
 	}
 	// TODO: write your code here
 	if(mkdir){
@@ -138,7 +138,8 @@ static int tfs_mknod(struct inode *dir, const char *name, size_t len, int mkdir)
 		inode = new_reg();
 	}
 	u64 name_len = 0; 
-	for(;*(name+name_len) != '\0'; ++name_len);
+	for(;*(name+name_len) != '\0'&&*(name+name_len) != '/'; ++name_len);
+	//printf("mknod: dir: %p, name: %s, len: %d\n", dir, name, name_len);
 	dent = new_dent(inode, name, name_len);
 	inode->size = len;
 	htable_add(&dir->dentries, dent->name.hash, &dent->node);
@@ -155,6 +156,7 @@ int tfs_creat(struct inode *dir, const char *name, size_t len)
 	return tfs_mknod(dir, name, len, 0 /* mkdir */ );
 }
 
+
 // look up a file called `name` under the inode `dir` 
 // and return the dentry of this file
 static struct dentry *tfs_lookup(struct inode *dir, const char *name,
@@ -167,7 +169,8 @@ static struct dentry *tfs_lookup(struct inode *dir, const char *name,
 	head = htable_get_bucket(&dir->dentries, (u32) hash);
 
 	for_each_in_hlist(dent, node, head) {
-		if (dent->name.len == len && 0 == strcmp(dent->name.str, name))
+		//printf("[lookup] name:%s, len:%d\n", dent->name.str, dent->name.len);
+		if (dent->name.len == len && 0 == strncmp(dent->name.str, name, len))
 			return dent;
 	}
 	return NULL;
@@ -218,8 +221,9 @@ int tfs_namex(struct inode **dirat, const char **name, int mkdir_p)
 		else{
 			const char *start = *name - len;
 			if((dent = tfs_lookup(*dirat, start, len)) == NULL){
+				info("what's missing: %s\n", start);
 				if(mkdir_p){
-					if(tfs_mkdir(*dirat, start, sizeof(struct inode)) != 0)
+					if(tfs_mkdir(*dirat, start, 0) != 0)
 						return -1;
 				}
 				else{
@@ -227,6 +231,7 @@ int tfs_namex(struct inode **dirat, const char **name, int mkdir_p)
 				}
 				dent = tfs_lookup(*dirat, start, len);
 			}
+			//printf("*dirat: %p, dent->inode: %p\n", *dirat, dent->inode);
 			*dirat = dent->inode;
 			while(**name == '/')
 				++(*name);
@@ -328,7 +333,7 @@ ssize_t tfs_file_write(struct inode * inode, off_t offset, const char *data,
 	size_t to_write;
 	size_t retsize = size;
 	size_t current_offset = 0;
-	printf("[file_write] page_no: %d page_end: %d\n", page_no, page_end);
+	//printf("[file_write] page_no: %d page_end: %d\n", page_no, page_end);
 	for(u64 page_idx = page_no; page_idx<=page_end; ++page_idx){
 		page = radix_get(&inode->data, page_idx);
 		if(page == NULL){
@@ -413,23 +418,36 @@ int tfs_load_image(const char *start)
 	size_t len;
 	for (f = g_files.head.next; f; f = f->next) {
 		// TODO: Lab5: your code is here
+		dirat = tmpfs_root; 
 		leaf = f->name;
-		name_len = f->header.c_namesize;
+		//name_len = f->header.c_namesize;
 		len = f->header.c_filesize;
-		if(tfs_namex(&dirat, &leaf, 1)){
+		//printf("[load_image] file size:%d\n", len);
+		//printf("[load_image] file name:%s\n", f->name);
+		if(!tfs_namex(&dirat, &leaf, 1)){
+			for(name_len=0;*(leaf+name_len)&&*(leaf+name_len)!='/';name_len++);
 			dent = tfs_lookup(dirat, leaf, name_len);
 			if(dent == NULL){
-				tfs_creat(dirat, leaf, name_len);
-				if((dent = tfs_lookup(dirat, leaf, name_len)) != NULL){
-					reg_file = dent->inode;
+				//printf("dirat: %p leaf: %s len: %d\n", dirat, leaf, len);
+				if(len != 0){
+					tfs_creat(dirat, leaf, len);
+					if((dent = tfs_lookup(dirat, leaf, name_len)) != NULL){
+						reg_file = dent->inode;
+					}
+					else{
+						return -1;
+					}
 				}
-				else{
-					return -1;
+				else{ //it's a file
+					//printf("what's missing:%s\n", leaf);
+					tfs_mkdir(dirat, leaf, 0);
+					continue;
 				}
 			}
 			else{
 				reg_file = dent->inode;
 			}
+			//printf("[load_image] write to file\n");
 			write_count = tfs_file_write(reg_file, 0, f->data, len);
 		}
 	}

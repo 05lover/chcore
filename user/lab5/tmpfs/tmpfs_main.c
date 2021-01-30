@@ -15,7 +15,7 @@ static void fs_dispatch(ipc_msg_t * ipc_msg)
 		switch (fr->req) {
 		case FS_REQ_SCAN:{
 				// TODO: you code here
-				ret = fs_server_scan(fr->path, fr->offset, fr->buff, (unsigned int)fr->count);
+				ret = fs_server_scan(fr->path, fr->offset,(char *)(fr+1), (unsigned int)fr->count);
 				break;
 			}
 		case FS_REQ_MKDIR:
@@ -83,7 +83,9 @@ int main(int argc, char *argv[], char *envp[])
 		usys_exit(-1);
 	}
 
+	info("fs_server_init start\n");
 	fs_server_init(CPIO_BIN);
+	info("fs_server_init finished\n");
 	info("register server value = %u\n", ipc_register_server(fs_dispatch));
 
 	server_ready_flag = info_page_addr + server_ready_flag_offset;

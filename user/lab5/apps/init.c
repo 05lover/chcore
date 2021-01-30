@@ -52,8 +52,14 @@ char *readline(const char *prompt)
 		c = getch();
 		if (c < 0)
 			return NULL;
-		// TODO: your code here
-
+		// sm code
+		if(c == '\n'){
+			usys_putc(c);
+			buf[ret++] = '\0';
+			return buf;
+		}
+		buf[ret++] = c;	
+		usys_putc(c);
 	}
 	return buf;
 }
@@ -79,7 +85,33 @@ int do_top()
 
 void fs_scan(char *path)
 {
-	// TODO: your code here
+	int count = 4096/2;
+	char str[256];
+	int start = 0;
+	void *vp;
+        struct dirent *p;
+	struct fs_request fr;
+	fr.req = FS_REQ_SCAN;
+	fr.buff = NULL;
+	strcpy(fr.path+1, path);
+	fr.path[0]='/';
+	fr.offset = start;
+	fr.count = count;
+
+	ipc_msg_t *ipc_msg = ipc_create_msg(tmpfs_ipc_struct, sizeof(fr)+count, 1);
+	ipc_set_msg_data(ipc_msg, (void *)&fr, 0, sizeof(fr));
+	int ret = ipc_call(tmpfs_ipc_struct, ipc_msg);
+	char *buf = (void *)ipc_msg + sizeof(*ipc_msg) + sizeof(fr);
+	printf("buf[0]: %c, ret: %d\n", buf[0], ret);
+	//ipc_destroy_msg(ipc_msg);
+	vp = buf;
+	for (int i = 0; i < ret; i++) {
+		p = vp;
+		strcpy(str, p->d_name);
+		printf("%s\n", str);
+		//printf("[fs_scan]d_reclen:%d\n", p->d_reclen);
+		vp += p->d_reclen;
+	}
 }
 
 int do_ls(char *cmdline)

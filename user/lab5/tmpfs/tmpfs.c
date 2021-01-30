@@ -503,6 +503,7 @@ int tfs_scan(struct inode *dir, unsigned int start, void *buf, void *end)
 /* path[0] must be '/' */
 struct inode *tfs_open_path(const char *path)
 {
+	//printf("[tfs_open_path] path: %s\n", path);
 	struct inode *dirat = NULL;
 	const char *leaf = path;
 	struct dentry *dent;

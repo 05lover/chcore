@@ -117,6 +117,7 @@ ssize_t fs_server_get_size(const char *path)
 	BUG_ON(!path);
 	BUG_ON(*path != '/');
 
+	//printf("[fs_server_get_size] path: %s\n", path);
 	inode = tfs_open_path(path);
 	if (inode)
 		ret = inode->size;

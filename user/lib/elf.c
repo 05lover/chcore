@@ -271,6 +271,7 @@ struct elf_file *elf_parse_file(const char *code, struct elf_file *elf)
 	int err;
 	int i;
 
+	printf("[elf_parse_file]binary: %p, elf: %p elf_end: %p\n", code, elf, (elf+1));
 	if (!elf)
 		return ERR_PTR(-ENOMEM);
 

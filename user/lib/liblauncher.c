@@ -132,10 +132,13 @@ static int fs_read(const char *path, int *tmpfs_read_pmo_cap)
 	fr.buff = (char *)TMPFS_READ_BUF_VADDR;
 	fr.count = ret;
 	fr.req = FS_REQ_READ;
+	printf("[fs_read]before cap and data cap: %d, fr: %p\n",*tmpfs_read_pmo_cap,fr);
 	ipc_set_msg_cap(ipc_msg, 0, *tmpfs_read_pmo_cap);
 	ipc_set_msg_data(ipc_msg, (char *)&fr, 0, sizeof(struct fs_request));
+	printf("[fs_read]before ipc_call\n");
 	ret = ipc_call(tmpfs_ipc_struct, ipc_msg);
-
+	
+	printf("[fs_read]finish ipc_call\n");
 	ipc_destroy_msg(ipc_msg);
 	return ret;
 }

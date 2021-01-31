@@ -47,6 +47,12 @@ static void fs_dispatch(ipc_msg_t * ipc_msg)
 			}
 		case FS_REQ_READ:{
 				// TODO: you code here
+				printf("[fs server]I am reading\n");
+				u32 tmpfs_read_pmo_cap = ipc_get_msg_cap(ipc_msg, 0);
+				int ret = usys_map_pmo(SELF_CAP,
+					   tmpfs_read_pmo_cap,
+					   fr->buff, VM_READ | VM_WRITE);
+				BUG_ON(ret < 0);
 				ret = fs_server_read(fr->path, fr->offset, fr->buff, (size_t)fr->count);
 				break;
 			}
